@@ -227,7 +227,15 @@ class VectorStoreIndex(BaseIndex[IndexDict]):
         if not nodes:
             return
 
-        for nodes_batch in iter_batch(nodes, self._insert_batch_size):
+        if show_progress:
+            try:
+                from tqdm import tqdm
+                nodes_batches = tqdm(iter_batch(nodes, self._insert_batch_size))
+            except ImportError:
+                nodes_batches = iter_batch(nodes, self._insert_batch_size)
+        else:
+            nodes_batches = iter_batch(nodes, self._insert_batch_size)
+        for nodes_batch in nodes_batches:
             nodes_batch = self._get_node_with_embedding(nodes_batch, show_progress)
             new_ids = self._vector_store.add(nodes_batch, **insert_kwargs)
 
